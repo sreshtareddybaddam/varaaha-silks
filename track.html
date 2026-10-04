@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Track Order — Varaaha Silks</title>
+<style>
+body{margin:0;background:#f8f1e8;color:#43232a;font-family:Arial,sans-serif}
+.wrap{max-width:600px;margin:70px auto;padding:28px;background:#fffaf4;border:1px solid #e3d1bc;border-radius:18px}
+h1{font-family:Georgia,serif;font-size:38px;margin-top:0}input,button{width:100%;box-sizing:border-box;padding:13px;margin:7px 0;border-radius:10px;border:1px solid #d8c4ac}
+button{background:#4b1824;color:white;border:0;cursor:pointer}.muted{color:#7c685d}.result{margin-top:22px;padding:18px;background:#f6ecdf;border-radius:12px}.status{font-size:22px;font-weight:700}
+.steps{display:flex;justify-content:space-between;gap:4px;margin-top:20px}.step{flex:1;text-align:center;font-size:11px;padding:9px 2px;border-radius:8px;background:#eadbca}.step.active{background:#9b7b3f;color:white}
+</style></head>
+<body><div class="wrap">
+<h1>Track your order</h1><p class="muted">Enter your Order ID and the phone number used at checkout.</p>
+<input id="id" placeholder="Order ID">
+<input id="phone" placeholder="Phone number">
+<button onclick="track()">Track order</button>
+<p id="msg" class="muted"></p><div id="result"></div>
+</div>
+<script>
+async function track(){
+ const id=document.getElementById('id').value.trim(),phone=document.getElementById('phone').value.trim();
+ const r=await fetch('/api/track/'+encodeURIComponent(id)+'?phone='+encodeURIComponent(phone));
+ const d=await r.json();
+ if(!r.ok){document.getElementById('msg').textContent=d.detail||'Order not found';document.getElementById('result').innerHTML='';return}
+ document.getElementById('msg').textContent='';
+ const states=['Pending','Confirmed','Packed','Shipped','Delivered'];
+ const idx=states.indexOf(d.status);
+ document.getElementById('result').innerHTML=`<div><b>${d.id}</b><br>${d.customer_name}<br>Total: ₹${Number(d.total).toLocaleString('en-IN')}</div>
+ <p class="status">${d.status}</p><div class="steps">${states.map((x,i)=>`<div class="step ${i<=idx?'active':''}">${x}</div>`).join('')}</div>`;
+}
+</script></body></html>
